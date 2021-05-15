@@ -10,8 +10,24 @@ private:
 	int size;
 	vector<vector<int>> matrix;
 public:
+	Matrix(vector<vector<int>> init_vec)
+	{
+		matrix.assign(init_vec.size(), vector<int>(init_vec.size(), 0));
 
-	Matrix(int size = 1)
+		size = init_vec.size();
+
+		for (size_t i = 0; i < init_vec.size(); i++)
+		{
+			for (size_t j = 0; j < init_vec.size(); j++)
+			{
+				matrix[i][j] = init_vec[i][j];
+			}
+		}
+	}
+	Matrix(){}
+
+	//конструктор
+	Matrix(int size )
 	{
 		this->size = size;
 
@@ -35,20 +51,35 @@ public:
 	
 	void PrintMatrix(); // вывод матрицы в консоль
 
-	int GetDetMatrix(vector<vector<int>> mat,int size_mat); // нахождение определителя матрицы
-	int GetMatrixDim(); // Возвращает размерность матрицы
+	double GetDetMatrix(vector<vector<int>> ob, int n); // нахождение определителя матрицы
+	int GetMatrixDim()const; // Возвращает размерность матрицы
+	vector<vector<int>> GetMatrix()const; // возвращает текущую матрицу
 
 };
 void Matrix::ResizeMatrix(int new_dimension)// после изменения размера матрица будет заполнена 0
 {
-	matrix.assign(new_dimension, vector<int>(new_dimension,0));
+	if( new_dimension > size)matrix.assign(new_dimension, vector<int>(new_dimension,0)); // если новый размер больше то придётся заполнить все нулями с потерей данных, иначе будет заполнено мусором
+	else{ // иначе уменьшаем размер
+		matrix.resize(new_dimension);
+			for (auto& it : matrix)
+			{
+				it.resize(new_dimension);
+			}
+	}
+	size = new_dimension; // сохраняем новое значение размера
 }
 
-int Matrix::GetMatrixDim()
+vector<vector<int>> Matrix::GetMatrix()const// Не изменяющий метод для получения матрицы
+{
+	return matrix;
+}
+
+int Matrix::GetMatrixDim()const // константный метод получения размера матрицы
 {
 	return size;
 }
-void Matrix::PrintMatrix()
+
+void Matrix::PrintMatrix() // вывод матрицы 
 {
 	for (size_t i = 0; i < size; i++)
 	{
@@ -59,18 +90,91 @@ void Matrix::PrintMatrix()
 		cout << endl;
 	}
 }
-float Matrix::GetDetMatrix(vector<vector<int>> mat, int size_mat)
+
+
+
+double Matrix::GetDetMatrix(vector<vector<int>> ob, int size) // рекурсивный алгоритм нахождения определителя 
+{
+	int i, j;
+	double det = 0;
+	vector<vector<int>> m;
+	if (size == 1)
+	{
+		det = ob[0][0];
+	}
+	else if (size == 2)
+	{
+		det = ob[0][0] * ob[1][1] - ob[0][1] * ob[1][0];
+	}
+	else
+	{
+		m.resize(size - 1);
+		for (i = 0; i < size; ++i)
+		{
+			for (j = 0; j < size - 1; ++j)
+			{
+				if (j < i)
+					m[j] = ob[j];
+				else
+					m[j] = ob[j + 1];
+			}
+			det += pow((double)-1, (i + j)) * GetDetMatrix(m, size - 1) * ob[i][size - 1];
+		}
+	}
+	return det;
+}
 
 
 int main()
 {
 	setlocale(LC_ALL, "Russian");
 
-	Matrix a =((1, 0, 0), (0, 1, 0), (0, 0, 1));
+	vector<vector<int>> test = { {1,0,0},{0,1,0},{0,0,1} }; // инициализируем вектора 
+
+	vector<vector<int>> test2 = { { 5,	4,	3},{21,-2,6},{5,4,0} };
+
+
+	Matrix a(test);
+
+	Matrix b(test2);
+
+	cout << "Matrix a:" << endl;
 
 	a.PrintMatrix();
 
-	a.GetDetMatrix(a, a.GetMatrixDim());
+	cout << "____________________________" << endl;
+
+	cout << a.GetDetMatrix(a.GetMatrix(), a.GetMatrixDim()) << endl ;
+
+	cout << "____________________________" << endl << "Изменим размер матрицы до 2"<<endl;
+
+	a.ResizeMatrix(2);
+
+	cout << "____________________________" << endl;
+
+	a.PrintMatrix();
+
+	cout << "____________________________" << endl;
+
+	cout << " Matrix b:" << endl;
+	
+	b.PrintMatrix();
+
+	cout << "____________________________" << endl;
+
+	cout << "Определитель матрицы б:" << endl;
+
+	cout << b.GetDetMatrix(b.GetMatrix(), b.GetMatrixDim()) << endl;
+
+	cout << "____________________________" << endl;
+
+	b.ResizeMatrix(6);
+
+	cout << " меняем размер на 6 матрицы Б:" << endl;
+
+	cout << "____________________________" << endl;
+
+	b.PrintMatrix();
 
 	return 0;
 
